@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-
+require('dotenv').config();
 /////////////////////////////////////creer nouveau compte utilisateur/////////////////////////////////
 exports.signUp = async (req, res) => {
   try {
@@ -34,7 +34,7 @@ exports.login = (req, res) => {
           }
           res.status(200).json({
             userId: user._id,
-            token: jwt.sign({ userId: user._id }, 'RANDOM_TOKEN_SECRET', {
+            token: jwt.sign({ userId: user._id }, process.env.KEY_TOKEN, {
               expiresIn: '24h',
             }),
           });
