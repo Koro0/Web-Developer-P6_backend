@@ -58,3 +58,51 @@ exports.deleteSauce = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error: 'error delete' }));
 };
+
+////////////// Like / Unlike /////////////
+
+exports.sauceLike = async (req, res, next) => {
+  console.log(req.body);
+  console.log(req.params.id);
+  const sauceLiked = await Sauce.findOne({ _id: req.params.id });
+  let usersLikedTab = sauceLiked.usersLiked;
+  let usersDislikedTab = sauceLiked.usersDisliked;
+  let usersExist = false;
+  for (i = 0; i < usersLikedTab.length; i++) {
+    if (usersLikedTab[i] == req.body.userId) {
+      usersExist = true;
+    }
+  }
+  for (j = 0; i < usersDislikedTab.length; i++) {
+    if (usersDislikedTab[i] == req.body.userId) {
+      usersExist = true;
+    }
+  }
+  console.log(usersExist);
+  // console.log(usersLikedTab);
+  // console.log(usersDislikedTab);
+  if (usersExist == false) {
+    if (req.body.type == 'like') {
+      Sauce.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          likes: sauceLiked.likes + 1,
+          usersLiked: sauceLiked.usersLiked.concat([req.body.userId]),
+        }
+      )
+        .then(() => res.status(200).json({ message: 'liked' }))
+        .catch((error) => res.status(400).json({ error }));
+    } else if (req.body.type == 'dislike') {
+      Sauce.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          likes: sauceLiked.dislikes + 1,
+          usersLiked: sauceLiked.usersLiked.concat([req.body.userId]),
+        }
+      )
+        .then(() => res.status(200).json({ message: 'disliked' }))
+        .catch((error) => res.status(400).json({ error }));
+    }
+  }
+  console.log(sauceLiked);
+};
