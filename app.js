@@ -1,10 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
+const path = require('path');
 
 const app = express();
 ///////////////////// Appel route User /////////////////////////////////////////////////////////////////
 const userRoutes = require('./routes/user');
+const sauceRoutes = require('./routes/sauce');
 
 mongoose
   .connect(process.env.MONGOOSE_URL, {
@@ -30,5 +32,8 @@ app.use((req, res, next) => {
 });
 ///// authentification signUp / logIn////
 app.use('/api/auth', userRoutes);
-
+///// acces sauce ///////////////
+app.use('/api/sauces', sauceRoutes);
+////// acces images //////////
+app.use('/images', express.static(path.join(__dirname, 'images')));
 module.exports = app;
