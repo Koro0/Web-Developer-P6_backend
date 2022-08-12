@@ -2,7 +2,12 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 require('dotenv').config();
-/////////////////////////////////////creer nouveau compte utilisateur/////////////////////////////////
+/**
+ * create a user account
+ * @param {String } req email and passWord
+ * @param {String} res status, message or error
+ * @return
+ */
 exports.signUp = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 12);
@@ -13,11 +18,16 @@ exports.signUp = async (req, res) => {
     await user.save();
     res.status(201).json({ message: 'Utilisateur créé!' });
   } catch (error) {
-    res.status(400).json({ error: '!' });
+    res.status(400).json({ error: 'email existed' });
   }
 };
 
-///////////////////////////////////Connexion /////////////////////////////////////////////
+/**
+ * connexion / login
+ * @param {string} req post user.id => email and token: PSW
+ * @param {string} res token is valided to 24 hours
+ * @return access all Sauces
+ */
 exports.login = (req, res) => {
   User.findOne({ email: req.body.email })
     .then((user) => {
