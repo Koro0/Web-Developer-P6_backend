@@ -62,27 +62,16 @@ exports.deleteSauce = (req, res, next) => {
 ////////////// Like / Unlike /////////////
 
 exports.sauceLike = async (req, res, next) => {
-  console.log(req.body);
-  console.log(req.params.id);
   const sauceLiked = await Sauce.findOne({ _id: req.params.id });
   let usersLikedTab = sauceLiked.usersLiked;
   let usersDislikedTab = sauceLiked.usersDisliked;
-  let usersExist = false;
-  for (i = 0; i < usersLikedTab.length; i++) {
-    if (usersLikedTab[i] == req.body.userId) {
-      usersExist = true;
-    }
-  }
-  for (j = 0; i < usersDislikedTab.length; i++) {
-    if (usersDislikedTab[i] == req.body.userId) {
-      usersExist = true;
-    }
-  }
-  console.log(usersExist);
-  // console.log(usersLikedTab);
-  // console.log(usersDislikedTab);
-  if (usersExist == false) {
-    if (req.body.type == 'like') {
+
+  // passe en boucle le tableau likes
+  const userIsInLiked = usersLikedTab.includes(req.body.userId);
+  //  passe en boucle le tableau dislikes
+  const userIsInDiskiked = usersDislikedTab.includes(req.body.userId);
+  if (userIsInLiked == false && userIsInDiskiked == false) {
+    if (req.body.like == 1) {
       Sauce.findOneAndUpdate(
         { _id: req.params.id },
         {
@@ -92,7 +81,7 @@ exports.sauceLike = async (req, res, next) => {
       )
         .then(() => res.status(200).json({ message: 'liked' }))
         .catch((error) => res.status(400).json({ error }));
-    } else if (req.body.type == 'dislike') {
+    } else if (req.body.type == 'dislike' && req.body.like == '-1') {
       Sauce.findOneAndUpdate(
         { _id: req.params.id },
         {
@@ -103,6 +92,34 @@ exports.sauceLike = async (req, res, next) => {
         .then(() => res.status(200).json({ message: 'disliked' }))
         .catch((error) => res.status(400).json({ error }));
     }
+  } else {
+    if (req.body.like == 0) {
+      usersExist = false;
+      Sauce.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          likes: sauceLiked.likes - 1,
+          usersLiked: sauceLiked.usersLiked.filter(
+            (e) => e !== req.body.userId
+          ),
+        }
+      )
+        .then(() => res.status(200).json({ message: 'delete liked' }))
+        .catch((error) => res.status(400).json({ error }));
+    } else if (req.body.like == 0) {
+      usersExist = false;
+
+      Sauce.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          likes: sauceLiked.likes - 1, // blocker a 0 like minimum
+          usersLiked: sauceLiked.usersDisliked.filter(
+            (e) => e !== req.body.userId
+          ),
+        }
+      )
+        .then(() => res.status(200).json({ message: 'delete disliked' }))
+        .catch((error) => res.status(400).json({ error }));
+    }
   }
-  console.log(sauceLiked);
 };
