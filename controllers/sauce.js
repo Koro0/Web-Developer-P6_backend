@@ -1,14 +1,16 @@
 const Sauce = require('../models/Sauce');
 const fs = require('fs');
-
+/**
+ * create a sauce with image
+ * @param {objet} req infomation sauce and image
+ * @param {String} res
+ * @return message if is valid or not
+ */
 exports.createSauce = (req, res, next) => {
-  console.log(req.body);
   const sauceObjet = JSON.parse(req.body.sauce);
   const sauce = new Sauce({
     ...sauceObjet,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${
-      req.file.filename
-    }`,
+    imageUrl: `${req.protocol}:${req.get('host')}/images/${req.file.filename}`,
     likes: 0,
     dislikes: 0,
     usersLiked: [],
@@ -19,12 +21,17 @@ exports.createSauce = (req, res, next) => {
     .then(() => res.status(200).json({ message: 'Sauce enregistrée !' }))
     .catch((error) => res.status(400).json({ error }));
 };
-
+/**
+ * modify the existent Sauce
+ * @param {Objet} req get sauce only user id create andd sauce and images to update
+ * @param {*} res update sauce
+ * @return status and message or error
+ */
 exports.modifySauce = (req, res, next) => {
   const sauceObjet = req.file
     ? {
         ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${
+        imageUrl: `${req.protocol}:${req.get('host')}/images/${
           req.file.filename
         }`,
       }
@@ -33,19 +40,32 @@ exports.modifySauce = (req, res, next) => {
     .then(() => res.status(200).json({ message: 'Sauce modifiée !' }))
     .catch((error) => res.status(400).json({ error }));
 };
-
+/**
+ * Get one Sauce
+ * @param {object} req sauce.id
+ * @param {object} res
+ * @return Sauce to find with sauce.id
+ */
 exports.getOneSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => res.status(200).json(sauce))
     .catch((error) => res.status(400).json({ error }));
 };
-
+/**
+ * get All Sauce
+ * @return all Sauces in server
+ */
 exports.getAllSauce = (req, res, next) => {
   Sauce.find()
     .then((sauces) => res.status(200).json(sauces))
     .catch((error) => res.status(400).json({ error: error }));
 };
-
+/**
+ * delete sauce if it user create
+ * @param {object} req sauce.id user.id
+ * @param {object} res delete sauce
+ * @return sauce is delete and thier image
+ */
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
@@ -59,16 +79,21 @@ exports.deleteSauce = (req, res, next) => {
     .catch((error) => res.status(500).json({ error: 'error delete' }));
 };
 
-////////////// Like / Unlike /////////////
+/**
+ * Like and Dislike a Sauce
+ * @param {number, String} req req 1, -1 or 0 for like, dislike and cancel
+ * @param {number, String} res add one like or dislike
+ * @promise like or dislike if user never choice, or cancel like or dislike if user seleted
+ */
 
 exports.sauceLike = async (req, res, next) => {
   const sauceLiked = await Sauce.findOne({ _id: req.params.id });
   let usersLikedTab = sauceLiked.usersLiked;
   let usersDislikedTab = sauceLiked.usersDisliked;
 
-  // passe en boucle le tableau likes
+  //passe en boucle le tableau likes
   const userIsInLiked = usersLikedTab.includes(req.body.userId);
-  //  passe en boucle le tableau dislikes
+  //passe en boucle le tableau dislikes
   const userIsInDiskiked = usersDislikedTab.includes(req.body.userId);
   if (userIsInLiked == false && userIsInDiskiked == false) {
     if (req.body.like == 1) {
@@ -81,7 +106,7 @@ exports.sauceLike = async (req, res, next) => {
       )
         .then(() => res.status(200).json({ message: 'liked' }))
         .catch((error) => res.status(400).json({ error }));
-    } else if (req.body.type == 'dislike' && req.body.like == '-1') {
+    } else if (req.body.like == -1) {
       Sauce.findOneAndUpdate(
         { _id: req.params.id },
         {
@@ -94,7 +119,6 @@ exports.sauceLike = async (req, res, next) => {
     }
   } else {
     if (req.body.like == 0) {
-      usersExist = false;
       Sauce.findOneAndUpdate(
         { _id: req.params.id },
         {
@@ -106,14 +130,12 @@ exports.sauceLike = async (req, res, next) => {
       )
         .then(() => res.status(200).json({ message: 'delete liked' }))
         .catch((error) => res.status(400).json({ error }));
-    } else if (req.body.like == 0) {
-      usersExist = false;
-
+    } else if (req.body.like == -1) {
       Sauce.findOneAndUpdate(
         { _id: req.params.id },
         {
-          likes: sauceLiked.likes - 1, // blocker a 0 like minimum
-          usersLiked: sauceLiked.usersDisliked.filter(
+          dislikes: sauceLiked.dislikes - 1, // blocker a 0 like minimum
+          usersDisliked: sauceLiked.usersDisliked.filter(
             (e) => e !== req.body.userId
           ),
         }
