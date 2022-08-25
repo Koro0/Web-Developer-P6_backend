@@ -8,6 +8,7 @@ const fs = require('fs');
  */
 exports.createSauce = (req, res, next) => {
   const sauceObjet = JSON.parse(req.body.sauce);
+  const img = './images';
   const sauce = new Sauce({
     ...sauceObjet,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${
@@ -18,6 +19,7 @@ exports.createSauce = (req, res, next) => {
     usersLiked: [],
     usersDisliked: [],
   });
+  !fs.existsSync(img) ? fs.mkdir(img) : console.log('created');
   sauce
     .save()
     .then(() => res.status(200).json({ message: 'Sauce enregistrée !' }))
