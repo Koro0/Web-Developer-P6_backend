@@ -55,6 +55,7 @@ exports.getOneSauce = (req, res, next) => {
 };
 /**
  * get All Sauce
+ * @param {object} res get all Sauces and their imgs
  * @return all Sauces in server
  */
 exports.getAllSauce = (req, res, next) => {
@@ -72,7 +73,7 @@ exports.getAllSauce = (req, res, next) => {
  * delete sauce if it user create
  * @param {object} req sauce.id user.id
  * @param {object} res delete sauce
- * @return sauce is delete and thier image
+ * @return sauce is delete and their image
  */
 exports.deleteSauce = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
